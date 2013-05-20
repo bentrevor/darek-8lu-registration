@@ -3,32 +3,59 @@ describe( "Service", function() {
 
   beforeEach( function() {
     jasmine.Ajax.useMock();
-    service = new Service();
+    fakeGUI = jasmine.createSpyObj('fakeGUI', ['updateLeaderboard',
+                                               'failSilently'] );
+    service = new Service( fakeGUI );
   });
 
   afterEach( function() {
     clearAjaxRequests();
   });
 
-
-  it( "sends a GET request to '/update_scores'", function() {
-    service.updateScores();
+  it( "sends a GET request to '/leaderboard.json'", function() {
+    service.requestNewScores();
     var request = mostRecentAjaxRequest();
 
     expect( request.method ).toBe( 'GET' );
-    expect( request.url ).toBe( '/update_scores' );
+    expect( request.url ).toMatch( /leaderboard.json/ );
   });
 
-  it( "doesn't change leaderboard when request fails", function() {
-    var fake_leaderboard = $( "<div id='leaderboard'>" );
-    var fake_leaders = $( "<ol><li>first place</li><li>second place</li></ol>" );
-    fake_leaderboard.append( fake_leaders );
+  it( "adds a timestamp to the url to prevent caching", function() {
+    service.requestNewScores();
+    var firstURL = mostRecentAjaxRequest().url;
+    var firstTimestamp = getTimestampFrom( firstURL );
 
-    var leaderboard_before_request = fake_leaderboard[0].innerHTML;
-    service.updateScores();
-    var request = mostRecentAjaxRequest();
-    request.response( TestResponses.updateScores.error );
+    service.requestNewScores();
+    var secondURL = mostRecentAjaxRequest().url;
+    var secondTimestamp = getTimestampFrom( secondURL );
 
-    expect( fake_leaderboard[0].innerHTML ).toEqual( leaderboard_before_request );
+    expect( firstTimestamp ).toBeLessThan( secondTimestamp );
   });
+
+  describe( "callbacks", function() {
+    it( "sends a reloadLeaderboard message for successful requests", function() {
+      service.requestNewScores();
+      var request = mostRecentAjaxRequest();
+      request.response( TestResponses.requestNewScores.success );
+      expect( fakeGUI.updateLeaderboard ).toHaveBeenCalled();
+    });
+
+    it( "sends response json to reload the leaderboard", function() {
+      service.requestNewScores();
+      var request = mostRecentAjaxRequest();
+      request.response( TestResponses.requestNewScores.success_with_full_json );
+      expect( fakeGUI.updateLeaderboard ).toHaveBeenCalledWith( JSON.parse( request.responseText ));
+    });
+
+    it( "sends a failSilently message for failed requests", function() {
+      service.requestNewScores();
+      var request = mostRecentAjaxRequest();
+      request.response( TestResponses.requestNewScores.error );
+      expect( fakeGUI.failSilently ).toHaveBeenCalled();
+    });
+  });
+
+  function getTimestampFrom( url ) {
+    return parseInt( url.slice( url.indexOf( '=' ) + 1 ));
+  }
 });
