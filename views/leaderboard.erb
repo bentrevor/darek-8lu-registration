@@ -1,1 +1,13 @@
-<p>in scoreboard.erb</p>
+
+<div id="leaderboard_container">
+  <ol id="leaderboard">
+  </ol>
+</div>
+
+<script type="text/javascript">
+  var gui = new BrowserGUI();
+  var service = new Service(gui);
+  var timer = new Timer(service);
+
+  timer.activateLeaderboard();
+</script>

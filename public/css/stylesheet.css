@@ -1,3 +1,49 @@
 body {
-  background-color: green;
+  background-color: #aaa;
+  font-size: 1.2em;
 }
+
+#leaderboard_container {
+  margin-left: auto;
+  margin-right: auto;
+  width: 80%;
+}
+
+li {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 10px;
+  padding: 10px;
+  -moz-box-shadow: 0px 0px 15px black;
+  -ms-box-shadow: 0px 0px 15px black;
+  -webkit-box-shadow: 0px 0px 15px black;
+  -o-box-shadow: 0px 0px 15px black;
+  box-shadow: 0px 0px 15px black;
+
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -o-border-radius: 4px;
+  border-radius: 4px;
+}
+
+span {
+  display: inline-block;
+}
+
+.gravatar {
+  width: 15%;
+}
+
+.name {
+  width: 50%;
+}
+
+.points {
+  width: 10%;
+}
+
+.objectsCollected {
+  width: 10%;
+}
+
