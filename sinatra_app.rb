@@ -3,8 +3,15 @@ require 'sinatra'
 class SinatraApp < Sinatra::Base
   set :registrations, []
 
-  post '/register' do
-    settings.registrations << [ params[ :username ], params[ :email ] ]
+  get '/' do
+    redirect :register
+  end
+
+  post '/validate_registration' do
+    if /^[a-z]*$/ =~ params[ :username ]
+      settings.registrations << [ params[ :username ], params[ :email ] ]
+      erb :registration_success
+    end
   end
 
   get '/leaderboard' do
