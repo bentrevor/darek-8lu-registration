@@ -1,5 +1,4 @@
 require 'sinatra'
-require 'digest'
 require 'openssl'
 
 class SinatraApp < Sinatra::Base
@@ -25,8 +24,9 @@ class SinatraApp < Sinatra::Base
       private_key = OpenSSL::PKey::RSA.new( 2048 )
       public_key = private_key.public_key
       keys = { public: public_key, private: private_key }
+      hashed_email = Digest::MD5.hexdigest( params[ :email ].downcase )
       user_hash = { email:       params[ :email ],
-                    email_md5:   Digest::MD5.hexdigest( params[ :email ]),
+                    email_md5:   hashed_email,
                     public_key:  public_key,
                     private_key: private_key }
 

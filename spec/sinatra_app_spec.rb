@@ -36,7 +36,7 @@ describe SinatraApp, type: :feature do
     end
 
     it "adds a hashed email to the registrant hash (for gravatars)" do
-      register_user "ben", "benjamin.trevor@gmail.com"
+      register_user "ben", "BeNjaMin.trevor@gmail.com"
 
       app.registrants[ :ben ][ :email_md5 ].should == "0fac516aac163057250b11cbe2c23540"
     end
@@ -92,7 +92,7 @@ describe SinatraApp, type: :feature do
     end
 
     it "doesn't allow invalid emails" do
-      assert_invalid_emails "user@foo,com", "user_at_foo.org", "example.user@foo.", "foo@bar_baz.com", "foo@bar+baz.com"
+      assert_invalid_emails " white@space.com ", "user@foo,com", "user_at_foo.org", "example.user@foo.", "foo@bar_baz.com", "foo@bar+baz.com"
     end
 
     it "only allows unique emails" do
