@@ -14,6 +14,9 @@ class SinatraApp < Sinatra::Base
     elsif invalid_email?
       @flash_message = invalid_email_flash_message
       erb :register
+    elsif registration_closed?
+      @flash_message = "Registration is closed."
+      erb :register
     else
       settings.registrants << [ params[:username], params[:email] ]
       redirect '/success'
@@ -85,5 +88,9 @@ class SinatraApp < Sinatra::Base
     elsif email_not_unique?
       "Email already taken."
     end
+  end
+
+  def registration_closed?
+    settings.registrants.length >= 25
   end
 end

@@ -92,6 +92,16 @@ describe SinatraApp, type: :feature do
       register_user "differentvalid", "taken@example.com"
       page.should have_content( "Email already taken" )
     end
+
+    it "limits registrations to 25" do
+      25.times do |counter|
+        register_user "user#{counter}", "email#{counter}@example.com"
+      end
+
+      register_user "valid", "valid@example.com"
+      page.should have_content( "Registration is closed." )
+      SinatraApp.registrants.length.should be 25
+    end
   end
 
   def assert_name_flash_message( name, flash_message )
