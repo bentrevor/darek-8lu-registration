@@ -3,6 +3,7 @@ require 'openssl'
 
 class SinatraApp < Sinatra::Base
   set :registrants, Hash.new
+  set :sessions, true
 
   get '/' do
     redirect :register
@@ -19,7 +20,7 @@ class SinatraApp < Sinatra::Base
       @flash_message = "Registration is closed."
       erb :register
     else
-      # send Darek two public/private pairs
+      session[ :user ] = params[ :username ]
       private_key = OpenSSL::PKey::RSA.new( 2048 )
       public_key = private_key.public_key
       keys = { public: public_key, private: private_key }
@@ -31,12 +32,13 @@ class SinatraApp < Sinatra::Base
 
       private_key_file = "key_#{params[:username]}.pub"
       private_key_path =  File.join( 'public', 'keys', private_key_file )
+
       File.open( private_key_path, 'w' ) do |file|
         file.write private_key
-        file.write "\n\n\n"
-        file.write public_key
       end
-      send_file private_key_path, { filename: private_key_file }
+
+      session[ :key_path ] = private_key_path
+
       redirect '/success'
     end
   end
@@ -46,11 +48,7 @@ class SinatraApp < Sinatra::Base
   end
 
   get '/download_key' do
-    user_settings = settings.registrants[ session[ :username ]]
-    key = user_settings[ :private_key ]
-    # send back private key
-    # send_file pub_file, { filename: pub_file }
-    # different route for API private key download
+    send_file session[ :key_path ], { filename: 'private_key' }
   end
 
   get '/leaderboard' do

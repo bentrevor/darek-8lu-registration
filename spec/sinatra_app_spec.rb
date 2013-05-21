@@ -1,30 +1,37 @@
 require_relative '../sinatra_app'
+require 'fileutils'
 require 'pp'
 require 'capybara/rspec'
 
 Capybara.app = SinatraApp
 
 describe SinatraApp, type: :feature do
+  let(:app) { SinatraApp }
+
   after :each do
-    SinatraApp.registrants.clear
+    app.registrants.clear
+  end
+
+  after :all do
+    FileUtils.rm_rf( "/Users/test/projects/darek-8lu/public/keys" )
   end
 
   describe "successful registration" do
     it "can register a user" do
-      SinatraApp.registrants.length.should be 0
+      app.registrants.length.should be 0
       register_user "valid", "valid@example.com"
 
-      SinatraApp.registrants.length.should be 1
+      app.registrants.length.should be 1
     end
 
     it "adds a user to a registrant hash" do
       register_user "firstname", "firstemail@example.com"
       register_user "secondname", "secondemail@example.com"
 
-      SinatraApp.registrants[ :firstname ].should_not be_nil
-      SinatraApp.registrants[ :firstname ][ :email ].should == "firstemail@example.com"
-      SinatraApp.registrants[ :secondname ].should_not be_nil
-      SinatraApp.registrants[ :secondname ][ :email ].should == "secondemail@example.com"
+      app.registrants[ :firstname ].should_not be_nil
+      app.registrants[ :firstname ][ :email ].should == "firstemail@example.com"
+      app.registrants[ :secondname ].should_not be_nil
+      app.registrants[ :secondname ][ :email ].should == "secondemail@example.com"
     end
 
     it "redirects to a 'success' page after registration" do
@@ -43,11 +50,11 @@ describe SinatraApp, type: :feature do
 
     it "stores a public key on the server when a user registers" do
       register_user "valid", "valid@example.com"
-      SinatraApp.registrants[ :valid ][ :public_key ].public?.should be true
-      SinatraApp.registrants[ :valid ][ :private_key ].private?.should be true
+      app.registrants[ :valid ][ :public_key ].public?.should be true
+      app.registrants[ :valid ][ :private_key ].private?.should be true
     end
 
-    xit "redirects the user to a success page with private key download" do
+    it "redirects the user to a success page with private key download" do
       register_user "valid", "valid@example.com"
       page.should have_link( "private key", { href: "/download_key" })
     end
@@ -60,21 +67,21 @@ describe SinatraApp, type: :feature do
 
     it "doesn't allow a blank name" do
       register_user "", "valid@example.com"
-      SinatraApp.registrants.length.should be 0
+      app.registrants.length.should be 0
     end
 
     it "limits names to 40 characters" do
       long_name = "a" * 50
       register_user long_name, "valid@example.com"
-      SinatraApp.registrants.length.should be 0
+      app.registrants.length.should be 0
     end
 
     it "only allows unique usernames" do
       register_user "valid", "valid@example.com"
-      SinatraApp.registrants.length.should be 1
+      app.registrants.length.should be 1
       register_user "valid", "differentvalid@example.com"
-      SinatraApp.registrants.length.should be 1
-      SinatraApp.registrants[ :valid ][ :email ].should == "valid@example.com"
+      app.registrants.length.should be 1
+      app.registrants[ :valid ][ :email ].should == "valid@example.com"
     end
 
     it "doesn't allow invalid emails" do
@@ -83,10 +90,10 @@ describe SinatraApp, type: :feature do
 
     it "only allows unique emails" do
       register_user "valid", "valid@example.com"
-      SinatraApp.registrants.length.should be 1
+      app.registrants.length.should be 1
       register_user "differentvalid", "valid@example.com"
-      SinatraApp.registrants.length.should be 1
-      SinatraApp.registrants[ :differentvalid ].should be_nil
+      app.registrants.length.should be 1
+      app.registrants[ :differentvalid ].should be_nil
     end
 
     it "shows an appropriate flash message for invalid names" do
@@ -114,7 +121,7 @@ describe SinatraApp, type: :feature do
 
       register_user "valid", "valid@example.com"
       page.should have_content( "Registration is closed." )
-      SinatraApp.registrants.length.should be 25
+      app.registrants.length.should be 25
     end
   end
 
@@ -126,18 +133,18 @@ describe SinatraApp, type: :feature do
   def assert_invalid_emails( *emails )
     emails.each do |email|
       register_user "valid", email
-      SinatraApp.registrants.length.should be 0
+      app.registrants.length.should be 0
     end
   end
 
   def assert_valid_email( email )
     register_user "valid", email
-    SinatraApp.registrants.length.should be 1
+    app.registrants.length.should be 1
   end
 
   def assert_valid_names( *names )
     names.each do |name, counter|
-      expect{ register_user name, "valid#{name}@example.com" }.to change{ SinatraApp.registrants.length }.by 1
+      expect{ register_user name, "valid#{name}@example.com" }.to change{ app.registrants.length }.by 1
     end
   end
 
@@ -145,7 +152,7 @@ describe SinatraApp, type: :feature do
     characters.each do |character|
       name = "invalid" << character
       register_user name, "valid@example.com"
-      SinatraApp.registrants.length.should be 0
+      app.registrants.length.should be 0
     end
   end
 
