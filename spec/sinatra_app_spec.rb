@@ -14,6 +14,7 @@ describe SinatraApp, type: :feature do
 
   after :all do
     FileUtils.rm_rf( "/Users/test/projects/darek-8lu/public/keys" )
+    FileUtils.mkdir( "/Users/test/projects/darek-8lu/public/keys" )
   end
 
   describe "successful registration" do
@@ -32,6 +33,12 @@ describe SinatraApp, type: :feature do
       app.registrants[ :firstname ][ :email ].should == "firstemail@example.com"
       app.registrants[ :secondname ].should_not be_nil
       app.registrants[ :secondname ][ :email ].should == "secondemail@example.com"
+    end
+
+    it "adds a hashed email to the registrant hash (for gravatars)" do
+      register_user "ben", "benjamin.trevor@gmail.com"
+
+      app.registrants[ :ben ][ :email_md5 ].should == "0fac516aac163057250b11cbe2c23540"
     end
 
     it "redirects to a 'success' page after registration" do
