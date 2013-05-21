@@ -30,12 +30,13 @@ class SinatraApp < Sinatra::Base
       settings.registrants[ params[ :username ].to_sym ] = user_hash
 
       private_key_file = "key_#{params[:username]}.pub"
-      File.open( private_key_file, 'w' ) do |file|
+      private_key_path =  File.join( 'public', 'keys', private_key_file )
+      File.open( private_key_path, 'w' ) do |file|
         file.write private_key
         file.write "\n\n\n"
         file.write public_key
       end
-      send_file private_key_file, { filename: private_key_file }
+      send_file private_key_path, { filename: private_key_file }
       redirect '/success'
     end
   end
