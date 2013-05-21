@@ -39,6 +39,17 @@ describe SinatraApp, type: :feature do
     it "allows valid emails" do
       assert_valid_email "valid@example.com"
     end
+
+    it "stores a public key on the server when a user registers" do
+      register_user "valid", "valid@example.com"
+      SinatraApp.registrants[0][2].public?.should be true
+      SinatraApp.registrants[0][2].private?.should be false
+    end
+
+    it "redirects the user to a success page with private key download" do
+      register_user "valid", "valid@example.com"
+      page.should have_link( "private key", { href: "/download_key" })
+    end
   end
 
   describe "unsuccessful registration" do

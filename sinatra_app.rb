@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'openssl'
 
 class SinatraApp < Sinatra::Base
   set :registrants, []
@@ -18,13 +19,24 @@ class SinatraApp < Sinatra::Base
       @flash_message = "Registration is closed."
       erb :register
     else
-      settings.registrants << [ params[:username], params[:email] ]
+      private_key = OpenSSL::PKey::RSA.new( 2048 )
+      public_key = private_key.public_key
+      settings.registrants << [ params[:username], params[:email], public_key ]
+      pub_file = "key_#{params[:username]}.pub"
+      File.open( pub_file, 'w' ) do |file|
+        file.write private_key
+      end
+      send_file pub_file, { filename: pub_file }
       redirect '/success'
     end
   end
 
   get '/success' do
     erb :registration_success
+  end
+
+  get '/download_key' do
+    redirect '/leaderboard'
   end
 
   get '/leaderboard' do
