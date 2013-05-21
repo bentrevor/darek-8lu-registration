@@ -2,7 +2,7 @@ require 'sinatra'
 require 'openssl'
 
 class SinatraApp < Sinatra::Base
-  set :registrants, []
+  set :registrants, Hash.new
 
   get '/' do
     redirect :register
@@ -19,14 +19,23 @@ class SinatraApp < Sinatra::Base
       @flash_message = "Registration is closed."
       erb :register
     else
+      # send Darek two public/private pairs
       private_key = OpenSSL::PKey::RSA.new( 2048 )
       public_key = private_key.public_key
-      settings.registrants << [ params[:username], params[:email], public_key ]
-      pub_file = "key_#{params[:username]}.pub"
-      File.open( pub_file, 'w' ) do |file|
+      keys = { public: public_key, private: private_key }
+      user_hash = { email:      params[ :email ],
+                    public_key: public_key,
+                    private_key: private_key }
+
+      settings.registrants[ params[ :username ].to_sym ] = user_hash
+
+      private_key_file = "key_#{params[:username]}.pub"
+      File.open( private_key_file, 'w' ) do |file|
         file.write private_key
+        file.write "\n\n\n"
+        file.write public_key
       end
-      send_file pub_file, { filename: pub_file }
+      send_file private_key_file, { filename: private_key_file }
       redirect '/success'
     end
   end
@@ -36,7 +45,11 @@ class SinatraApp < Sinatra::Base
   end
 
   get '/download_key' do
-    redirect '/leaderboard'
+    user_settings = settings.registrants[ session[ :username ]]
+    key = user_settings[ :private_key ]
+    # send back private key
+    # send_file pub_file, { filename: pub_file }
+    # different route for API private key download
   end
 
   get '/leaderboard' do
@@ -65,30 +78,26 @@ class SinatraApp < Sinatra::Base
   end
 
   def name_not_unique?
-    settings.registrants.each do |registrant|
-      return true if registrant[0] == params[:username]
-    end
-
-    false
+    !( settings.registrants[ params[ :username ].to_sym ].nil? )
   end
 
   def email_not_unique?
-    settings.registrants.each do |registrant|
-      return true if registrant[1].downcase == params[:email].downcase
+    SinatraApp.registrants.each_value do |user|
+      return true if user[ :email ] == params[ :email ]
     end
 
     false
   end
 
   def name_too_long?
-    params[:username].length > 40
+    params[:username].length > 20
   end
 
   def invalid_username_flash_message
     if name_regex_fails?
       "Username must contain only alphanumeric characters."
     elsif name_too_long?
-      "Username must be less than 40 characters."
+      "Username must be less than 20 characters."
     elsif name_not_unique?
       "Username is already taken."
     end
@@ -104,5 +113,9 @@ class SinatraApp < Sinatra::Base
 
   def registration_closed?
     settings.registrants.length >= 25
+  end
+
+  def self.clear_registrants
+    settings.registrants = Hash.new
   end
 end
