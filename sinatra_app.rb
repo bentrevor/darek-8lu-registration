@@ -3,8 +3,9 @@ require 'openssl'
 require 'json'
 
 class SinatraApp < Sinatra::Base
-  set :registrants, Hash.new
   enable :sessions
+  set :registrants, Hash.new
+  @@registrants = settings.registrants
 
   get '/' do
     redirect :register
@@ -12,37 +13,13 @@ class SinatraApp < Sinatra::Base
 
   post '/validate_registration' do
     if invalid_username?
-      @flash_message = invalid_username_flash_message
-      erb :register
+      show_menu_with invalid_username_flash_message
     elsif invalid_email?
-      @flash_message = invalid_email_flash_message
-      erb :register
+      show_menu_with invalid_email_flash_message
     elsif registration_closed?
-      @flash_message = "Registration is closed."
-      erb :register
+      show_menu_with "Registration is closed."
     else
-      session[ :user ] = params[ :username ]
-      private_key = OpenSSL::PKey::RSA.new( 2048 )
-      public_key = private_key.public_key
-      keys = { public: public_key, private: private_key }
-      hashed_email = Digest::MD5.hexdigest( params[ :email ].downcase )
-      user_hash = { email:       params[ :email ],
-                    email_md5:   hashed_email,
-                    public_key:  public_key,
-                    private_key: private_key }
-
-      settings.registrants[ params[ :username ].to_sym ] = user_hash
-
-      private_key_file = "key_#{params[:username]}.pub"
-      private_key_path =  File.join( 'public', 'keys', private_key_file )
-
-      File.open( private_key_path, 'w' ) do |file|
-        file.write private_key
-      end
-
-      session[ :key_path ] = private_key_path
-
-      redirect '/success'
+      register_new_user
     end
   end
 
@@ -63,11 +40,10 @@ class SinatraApp < Sinatra::Base
   end
 
   get '/keys/*' do |username|
-    if settings.registrants[ username.to_sym ]
+    if @@registrants[ username.to_sym ]
       erb :key_download
     else
-      @flash_message = "You must register first."
-      erb :register
+      show_menu_with "You must register first."
     end
   end
 
@@ -89,7 +65,7 @@ class SinatraApp < Sinatra::Base
   end
 
   def name_not_unique?
-    !( settings.registrants[ params[ :username ].to_sym ].nil? )
+    !( @@registrants[ params[ :username ].to_sym ].nil? )
   end
 
   def email_not_unique?
@@ -123,10 +99,42 @@ class SinatraApp < Sinatra::Base
   end
 
   def registration_closed?
-    settings.registrants.length >= 25
+    @@registrants.length >= 25
   end
 
-  def self.clear_registrants
-    settings.registrants = Hash.new
+  def show_menu_with( message )
+    @flash_message = message
+    erb :register
+  end
+
+  def create_key_pair
+    private_key = OpenSSL::PKey::RSA.new( 2048 )
+    public_key = private_key.public_key
+    return private_key, public_key
+  end
+
+  def register_new_user
+    session[ :user ] = params[ :username ]
+
+    private_key, public_key = create_key_pair
+
+    hashed_email = Digest::MD5.hexdigest( params[ :email ].downcase )
+    user_hash = { email:       params[ :email ],
+                  email_md5:   hashed_email,
+                  public_key:  public_key,
+                  private_key: private_key }
+
+    @@registrants[ params[ :username ].to_sym ] = user_hash
+
+    private_key_file = "key_#{params[:username]}.pub"
+    private_key_path =  File.join( 'public', 'keys', private_key_file )
+
+    File.open( private_key_path, 'w' ) do |file|
+      file.write private_key
+    end
+
+    session[ :key_path ] = private_key_path
+
+    redirect '/success'
   end
 end
