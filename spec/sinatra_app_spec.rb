@@ -132,6 +132,22 @@ describe SinatraApp, type: :feature do
     end
   end
 
+  describe "API" do
+    it "provides a page for users to download their private key" do
+      register_user "valid", "valid@example.com"
+
+      visit '/keys/valid'
+      page.should have_link( "private key", { href: "/download_key" })
+    end
+
+    it "turns away unregistered users" do
+      visit '/keys/invalid'
+
+      page.should have_content( "You must register first." )
+      page.should_not have_link( "private key", { href: "/download_key" })
+    end
+  end
+
   def assert_name_flash_message( name, flash_message )
     register_user name, "valid@example.com"
     page.should have_content( flash_message )

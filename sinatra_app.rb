@@ -1,9 +1,10 @@
 require 'sinatra'
 require 'openssl'
+require 'json'
 
 class SinatraApp < Sinatra::Base
   set :registrants, Hash.new
-  set :sessions, true
+  enable :sessions
 
   get '/' do
     redirect :register
@@ -59,6 +60,15 @@ class SinatraApp < Sinatra::Base
 
   get '/register' do
     erb :register
+  end
+
+  get '/keys/*' do |username|
+    if settings.registrants[ username.to_sym ]
+      erb :key_download
+    else
+      @flash_message = "You must register first."
+      erb :register
+    end
   end
 
   private
