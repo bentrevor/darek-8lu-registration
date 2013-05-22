@@ -1,4 +1,6 @@
-<div id="flash_message"><%= @flash_message %></div>
+<div id="flash_message" class="<%= @flash_message_div_class %>">
+  <%= @flash_message %>
+</div>
 
 <form action="/validate_registration" method="post">
   <label for="username">Name</label>
@@ -9,5 +11,4 @@
 
   <button type="submit">Submit</button>
 </form>
-
 

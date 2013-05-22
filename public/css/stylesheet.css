@@ -1,15 +1,36 @@
 body {
   background-color: #aaa;
   font-size: 1.2em;
+  text-align: center;
 }
 
-#leaderboard_container {
+form {
+  margin-top: 40px;
+}
+
+#content_container {
   margin-left: auto;
   margin-right: auto;
-  width: 80%;
+  width: 90%;
 }
 
+#flash_message {
+  background-color: #a66;
+  padding: 10px 4px;
+  margin: 100px auto 0px;
+  width: 50%;
+  -moz-border-radius: 4px;
+  -ms-border-radius: 4px;
+  -webkit-border-radius: 4px;
+  -o-border-radius: 4px;
+  border-radius: 4px;
+}
+
+.hidden  { visibility: hidden; }
+.visible { visibility: visible; }
+
 li {
+  text-align: left;
   margin-left: auto;
   margin-right: auto;
   margin-top: 10px;
@@ -31,19 +52,8 @@ span {
   display: inline-block;
 }
 
-.gravatar {
-  width: 15%;
-}
-
-.name {
-  width: 50%;
-}
-
-.points {
-  width: 10%;
-}
-
-.objectsCollected {
-  width: 10%;
-}
+.gravatar         { width: 15%; }
+.name             { width: 50%; }
+.points           { width: 10%; }
+.objectsCollected { width: 10%; }
 

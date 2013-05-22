@@ -25,11 +25,13 @@ class SinatraApp < Sinatra::Base
   end
 
   get '/success' do
+    hide_flash_message
     erb :registration_success
   end
 
   get '/download_key' do
     send_file session[ :key_path ], { filename: 'private_key' }
+    redirect :leaderboard
   end
 
   get '/leaderboard' do
@@ -37,6 +39,7 @@ class SinatraApp < Sinatra::Base
   end
 
   get '/register' do
+    hide_flash_message
     erb :register
   end
 
@@ -52,7 +55,6 @@ class SinatraApp < Sinatra::Base
     registered_users = []
 
     @@registrants.each do |k, v|
-      pp k
       registered_users << { k.to_sym => v }
     end
 
@@ -115,6 +117,7 @@ class SinatraApp < Sinatra::Base
   end
 
   def show_menu_with( message )
+    show_flash_message
     @flash_message = message
     erb :register
   end
@@ -148,5 +151,13 @@ class SinatraApp < Sinatra::Base
     session[ :key_path ] = private_key_path
 
     redirect '/success'
+  end
+
+  def hide_flash_message
+    @flash_message_div_class = "hidden"
+  end
+
+  def show_flash_message
+    @flash_message_div_class = "visible"
   end
 end
