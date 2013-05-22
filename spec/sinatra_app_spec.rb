@@ -13,8 +13,8 @@ describe SinatraApp, type: :feature do
   end
 
   after :all do
-    FileUtils.rm_rf( "/Users/test/projects/darek-8lu/public/keys" )
-    FileUtils.mkdir( "/Users/test/projects/darek-8lu/public/keys" )
+    FileUtils.rm_rf( Dir.pwd + "/public/keys" )
+    FileUtils.mkdir( Dir.pwd + "/public/keys" )
   end
 
   describe "successful registration" do
@@ -30,9 +30,7 @@ describe SinatraApp, type: :feature do
       register_user "secondname", "secondemail@example.com"
 
       app.registrants[ :firstname ].should_not be_nil
-      app.registrants[ :firstname ][ :email ].should == "firstemail@example.com"
       app.registrants[ :secondname ].should_not be_nil
-      app.registrants[ :secondname ][ :email ].should == "secondemail@example.com"
     end
 
     it "adds a hashed email to the registrant hash (for gravatars)" do
@@ -77,8 +75,8 @@ describe SinatraApp, type: :feature do
       app.registrants.length.should be 0
     end
 
-    it "limits names to 40 characters" do
-      long_name = "a" * 50
+    it "limits names to 20 characters" do
+      long_name = "a" * 21
       register_user long_name, "valid@example.com"
       app.registrants.length.should be 0
     end

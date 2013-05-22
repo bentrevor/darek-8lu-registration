@@ -4,6 +4,7 @@ require 'json'
 
 class SinatraApp < Sinatra::Base
   enable :sessions
+  disable :show_exceptions
   set :registrants, Hash.new
   @@registrants = settings.registrants
 
@@ -45,6 +46,17 @@ class SinatraApp < Sinatra::Base
     else
       show_menu_with "You must register first."
     end
+  end
+
+  get '/registered_users' do
+    registered_users = []
+
+    @@registrants.each do |k, v|
+      pp k
+      registered_users << { k.to_sym => v }
+    end
+
+    registered_users
   end
 
   private
