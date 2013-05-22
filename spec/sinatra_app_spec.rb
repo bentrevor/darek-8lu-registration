@@ -15,6 +15,7 @@ describe SinatraApp, type: :feature do
   after :all do
     FileUtils.rm_rf( Dir.pwd + "/public/keys" )
     FileUtils.mkdir( Dir.pwd + "/public/keys" )
+    FileUtils.touch( Dir.pwd + "/public/keys/placeholder" )
   end
 
   describe "successful registration" do
@@ -143,6 +144,21 @@ describe SinatraApp, type: :feature do
 
       page.should have_content( "You must register first." )
       page.should_not have_link( "private key", { href: "/download_key" })
+    end
+
+    it "returns a json string of registered users" do
+      register_user "valid1", "valid1@example.com"
+      register_user "valid2", "valid2@example.com"
+      register_user "valid3", "valid3@example.com"
+      visit '/registered_users'
+
+      json_response = JSON.parse( page.body )
+
+      response_headers[ "Content-type" ].should =~ /application.json/
+      json_response.length.should be 3
+      json_response[0][ "valid1" ][ "email" ].should == "valid1@example.com"
+      json_response[1][ "valid2" ][ "email" ].should == "valid2@example.com"
+      json_response[2][ "valid3" ][ "email" ].should == "valid3@example.com"
     end
   end
 

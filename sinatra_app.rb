@@ -52,13 +52,14 @@ class SinatraApp < Sinatra::Base
   end
 
   get '/registered_users' do
-    registered_users = []
+    content_type :json
+    arr = []
 
-    @@registrants.each do |k, v|
-      registered_users << { k.to_sym => v }
+    @@registrants.each_pair do |k, v|
+      arr << { k.to_sym => v }
     end
 
-    registered_users
+    arr.to_json
   end
 
   private
